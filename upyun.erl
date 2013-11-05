@@ -2,20 +2,16 @@
 
 -export([get_gmt_time/0, do_request/8, get/1, usage/1, info/1, delete/1, mkdir/1]).
 -import(md5, [md5/1]).
-%-import(digest_auth, [request/6]).
-%% http method
+
 -define(POST, post).
 -define(PUT, put).
 -define(GET, get).
 -define(DELETE, delete).
 -define(HEAD, head).
 
-%-define(Bucket, "zhangtao-file").
-%-define(UserName, "nodurex456").
-%-define(Password, "aa12345678").
--define(Bucket, "zhangtao-file").
--define(UserName, "nodurex456").
--define(Password, "aa12345678").
+-define(Bucket, "your bucket").
+-define(UserName, "your user name").
+-define(Password, "your pwd").
 
 
 %% request url
