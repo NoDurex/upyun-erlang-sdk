@@ -130,8 +130,3 @@ list_to_month("Sep") -> 9;
 list_to_month("Oct") -> 10;
 list_to_month("Nov") -> 11;
 list_to_month("Dec") -> 12.
-
-
-
-%upyun:do_request(post, "/zhangtao-file/2/3/4/5/6/7/helloworld3/test.txt", '', [], [], '/Volumes/hd/Dropbox/project/job/Test_Server_V2/test.txt' , true).
-
