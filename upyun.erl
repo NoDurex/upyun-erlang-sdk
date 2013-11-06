@@ -1,16 +1,17 @@
 -module(upyun).
 
--export([get_gmt_time/0, do_request/8, get/1, usage/1, info/1, delete/1, mkdir/1]).
+-export([get_gmt_time/0, do_request/8, get/1, usage/1, info/1, delete/1, mkdir/1, put/2]).
 -import(md5, [md5/1]).
-
+%-import(digest_auth, [request/6]).
+%% http method
 -define(POST, post).
 -define(PUT, put).
 -define(GET, get).
 -define(DELETE, delete).
 -define(HEAD, head).
 
--define(Bucket, "your bucket").
--define(UserName, "your user name").
+-define(Bucket, "your bucket_name").
+-define(UserName, "your user_name").
 -define(Password, "your pwd").
 
 
@@ -35,6 +36,19 @@
 -define(HEADER_UP_FILE_SIZE, "x-up-file-size").
 -define(HEADER_UP_FILE_DATE, "x-up-file-date").
 
+%% 上传文件
+put(Url, LocalFilePath) ->
+    RequestUrl = lists:append(["http://", ?ED_AUTO, Url]),
+    case LocalFilePath =/= '' of
+        true ->
+            {ok, F} = file:open(LocalFilePath, read),
+            {ok, Data}=file:read(F,100);
+        false ->
+            Data = ''
+    end,
+    do_put(RequestUrl, Url, Data).
+
+%% 创建目录
 mkdir(Url) ->
     RequestUrl = lists:append(["http://", ?ED_AUTO, Url]),
     do_post(RequestUrl, Url).
@@ -61,31 +75,43 @@ get(Url) ->
     {StateLine, ResponseHeader, Body} = do_get(RequestUrl, Url),
     Body.
 
+do_put(RequestUrl, Url, Data) ->
+     do_basic(post, RequestUrl, Url, Data).  
+
 
 do_get(RequestUrl, Url) ->
-    do_basic(get, RequestUrl, Url).
+    do_basic(get, RequestUrl, Url, '').
 
 do_head(RequestUrl, Url) ->
-    do_basic(head, RequestUrl, Url).
+    do_basic(head, RequestUrl, Url, '').
 
 do_delete(RequestUrl, Url) ->
-    do_basic(delete, RequestUrl, Url).
+    do_basic(delete, RequestUrl, Url, '').
 
 do_post(RequestUrl, Url) ->
-    do_basic(post, RequestUrl, Url).
+    do_basic(post, RequestUrl, Url, '').
 
-do_basic(Method, RequestUrl, Url) ->
+do_basic(Method, RequestUrl, Url, Data) ->
+    ContentLength = string:len(Data),
+    io:format(Data),
     GMTDate = get_gmt_time(),
     MethodStr = string:to_upper(atom_to_list(Method)),
     Header = [{"Date", GMTDate},
               {?HEADER_SDK_VERSION, "3.0"},
-              {?HEADER_AUTH, do_sign(MethodStr, Url, GMTDate, "0")}, 
-              {"timeout", "30000"}, 
+              {?HEADER_AUTH, do_sign(MethodStr, Url, GMTDate,integer_to_list(ContentLength))},
+              {"timeout", "30000"},
               {?HEADER_MKDIR, "true"}],
     inets:start(),
-    {ok, Result} = httpc:request(Method, {RequestUrl, Header}, [], []),
+    {ok, Result} = case Method of 
+        post->
+            httpc:request(Method, {RequestUrl, Header, "", Data}, [], []);
+        put ->
+            httpc:request(Method, {RequestUrl, Header, "", Data}, [], []); 
+        _ ->
+            httpc:request(Method, {RequestUrl, Header}, [], [])
+    end,
     inets:stop(),
-    Result.
+    Result. 
 
 do_sign(Method, Url, GmtDate, ContentLength) ->
     Sign = string:join([Method, Url, GmtDate, ContentLength, md5:md5(?Password)], "&"),
