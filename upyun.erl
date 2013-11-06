@@ -1,6 +1,6 @@
 -module(upyun).
 
--export([get/1, usage/1, info/1, delete/1, mkdir/1, put/2]).
+-export([get/1, usage/0, info/1, delete/1, mkdir/1, put/2]).
 -import(md5, [md5/1]).
 %-import(digest_auth, [request/6]).
 %% http method
