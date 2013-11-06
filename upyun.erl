@@ -10,9 +10,9 @@
 -define(DELETE, delete).
 -define(HEAD, head).
 
-%-define(Bucket, "your bucket_name").
-%-define(UserName, "your user_name").
-%-define(Password, "your pwd"). 
+-define(Bucket, "your bucket_name").
+-define(UserName, "your user_name").
+-define(Password, "your pwd"). 
 
 %% request url
 % 根据网络条件自动选择接入点
@@ -64,9 +64,9 @@ info(Url) ->
     do_head(RequestUrl, Url).
 
 %% 查看空间使用量
-usage(Bucket) ->
-    Url = lists:append(["/", Bucket, "/?usage"]),
-    RequestUrl = lists:append(["http://", ?ED_AUTO, "/", Bucket, "/?usage"]),
+usage() ->
+    Url = lists:append(["/", ?Bucket, "/?usage"]),
+    RequestUrl = lists:append(["http://", ?ED_AUTO, "/", ?Bucket, "/?usage"]),
     do_get(RequestUrl, Url).
 
 %% 读取文件
