@@ -12,10 +12,7 @@
 
 %-define(Bucket, "your bucket_name").
 %-define(UserName, "your user_name").
-%-define(Password, "your pwd").
--define(Bucket, "zhangtao-file").
--define(UserName, "nodurex456").
--define(Password, "aa12345678"). 
+%-define(Password, "your pwd"). 
 
 %% request url
 % 根据网络条件自动选择接入点
