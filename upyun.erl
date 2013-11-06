@@ -1,6 +1,6 @@
 -module(upyun).
 
--export([get_gmt_time/0, do_request/8, get/1, usage/1, info/1, delete/1, mkdir/1, put/2]).
+-export([get/1, usage/1, info/1, delete/1, mkdir/1, put/2]).
 -import(md5, [md5/1]).
 %-import(digest_auth, [request/6]).
 %% http method
@@ -10,10 +10,12 @@
 -define(DELETE, delete).
 -define(HEAD, head).
 
--define(Bucket, "your bucket_name").
--define(UserName, "your user_name").
--define(Password, "your pwd").
-
+%-define(Bucket, "your bucket_name").
+%-define(UserName, "your user_name").
+%-define(Password, "your pwd").
+-define(Bucket, "zhangtao-file").
+-define(UserName, "nodurex456").
+-define(Password, "aa12345678"). 
 
 %% request url
 % 根据网络条件自动选择接入点
@@ -41,8 +43,9 @@ put(Url, LocalFilePath) ->
     RequestUrl = lists:append(["http://", ?ED_AUTO, Url]),
     case LocalFilePath =/= '' of
         true ->
-            {ok, F} = file:open(LocalFilePath, read),
-            {ok, Data}=file:read(F,100);
+            %{ok, F} = file:open(LocalFilePath, read),
+            {ok, Binary}=file:read_file(LocalFilePath),
+            Data = erlang:binary_to_list(Binary);
         false ->
             Data = ''
     end,
@@ -93,7 +96,6 @@ do_post(RequestUrl, Url) ->
 
 do_basic(Method, RequestUrl, Url, Data) ->
     ContentLength = string:len(Data),
-    io:format(Data),
     GMTDate = get_gmt_time(),
     MethodStr = string:to_upper(atom_to_list(Method)),
     Header = [{"Date", GMTDate},
