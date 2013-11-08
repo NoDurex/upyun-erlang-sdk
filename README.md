@@ -37,7 +37,6 @@ upyun-erlang-sdk
 
 ```
 -import(upyun, [get/1, usage/0, info/1, delete/1, mkdir/1, put/2]).
-
 ```
 
 ### Method
@@ -45,15 +44,13 @@ upyun-erlang-sdk
 * 上传文件
 
 ```
-upyun:put('/bucket_name/text.txt', '/home/upyun/text.txt').
-
+upyun:put("/bucket_name/text.txt", "/home/upyun/text.txt").
 ```
 
 * 创建目录
 
 ```
-upyun:mkdir('/bucket_name/folder1/folder2/').
-
+upyun:mkdir("/bucket_name/folder1/folder2/").
 ```
 
 * 删除文件或目录
@@ -61,22 +58,20 @@ upyun:mkdir('/bucket_name/folder1/folder2/').
 
 ```
 % 删除文件
-upyun:delete('/bucket_name/text.txt').
+upyun:delete("/bucket_name/text.txt").
 
 % 删除目录
-upyun:delete('/bucket_name/folder/folder/').
-
+upyun:delete("/bucket_name/folder/folder/").
 ```
 
 * 获得文件或目录信息
 
 ```
 % 获得文件信息
-upyun:info('/bucket_name/text.txt').
+upyun:info("/bucket_name/text.txt").
 
 % 获得目录信息
-upyun:info('/bucket_name/folder1/folder2/').
-
+upyun:info("/bucket_name/folder1/folder2/").
 ```
 
 * 查看空间使用情况
@@ -90,7 +85,7 @@ upyun:usage().
 
 ```
 % 读取文件
-upyun:get('/bucket_name/text.txt').
+upyun:get("/bucket_name/text.txt").
 ```
 
 
