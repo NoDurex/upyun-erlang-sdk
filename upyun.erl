@@ -10,13 +10,13 @@
 -define(DELETE, delete).
 -define(HEAD, head).
 
--define(Bucket, "your bucket_name").
--define(UserName, "your user_name").
--define(Password, "your pwd"). 
+-define(Bucket, "your bucket name").
+-define(UserName, "your account name").
+-define(Password, "your password"). 
 
 %% request url
 % 根据网络条件自动选择接入点
--define(ED_AUTO, "v0.api2.upyun.com").
+-define(ED_AUTO, "v0.api.upyun.com").
 % 电信接入点
 -define(ED_TELECOM, "v1.api.upyun.com").
 % 网通接入点
@@ -30,84 +30,91 @@
 -define(HEADER_MKDIR, "x-up-mkdir").
 -define(HEADER_AUTH, "Authorization").
 -define(HEADER_CONTENTLENGTH, "Content-Length").
+-define(HEADER_TIMEOUT, "timeout").
+-define(HEADER_DATE, "Date").
 
 -define(HEADER_UP_FILE_TYPE, "x-up-file-type").
 -define(HEADER_UP_FILE_SIZE, "x-up-file-size").
 -define(HEADER_UP_FILE_DATE, "x-up-file-date").
+-define(HEADER_UP_FOLDER, "x-up-folder").
 
 %% 上传文件
 put(Url, LocalFilePath) ->
-    RequestUrl = lists:append(["http://", ?ED_AUTO, Url]),
-    case LocalFilePath =/= '' of
-        true ->
-            %{ok, F} = file:open(LocalFilePath, read),
-            {ok, Binary}=file:read_file(LocalFilePath),
-            Data = erlang:binary_to_list(Binary);
-        false ->
+    case file:read_file(LocalFilePath) of
+        {ok, Binary} ->
+            Data = binary_to_list(Binary);
+        _ ->
             Data = ''
     end,
-    do_put(RequestUrl, Url, Data).
+    do_put(Url, Data, true).
 
 %% 创建目录
 mkdir(Url) ->
-    RequestUrl = lists:append(["http://", ?ED_AUTO, Url]),
-    do_post(RequestUrl, Url).
+    do_post(Url, true).
 
 %% 删除文件或目录
 delete(Url) ->
-    RequestUrl = lists:append(["http://", ?ED_AUTO, Url]),
-    do_delete(RequestUrl, Url).
+    do_delete(Url).
 
 %% 获得文件或目录信息
 info(Url) ->
-    RequestUrl = lists:append(["http://", ?ED_AUTO, Url]),
-    do_head(RequestUrl, Url).
+    do_head(Url).
 
 %% 查看空间使用量
 usage() ->
     Url = lists:append(["/", ?Bucket, "/?usage"]),
-    RequestUrl = lists:append(["http://", ?ED_AUTO, "/", ?Bucket, "/?usage"]),
-    do_get(RequestUrl, Url).
+    do_get(Url).
 
 %% 读取文件
 get(Url) ->
-    RequestUrl = lists:append(["http://", ?ED_AUTO, Url]),
-    {StateLine, ResponseHeader, Body} = do_get(RequestUrl, Url),
+    %{StateLine, ResponseHeader, Body} = do_get(Url),
+    {_, _, Body} = do_get(Url),
     Body.
 
-do_put(RequestUrl, Url, Data) ->
-     do_basic(post, RequestUrl, Url, Data).  
+do_put(Url, Data, AutoMkDir) ->
+    case Data of
+        '' ->
+            {error, file_is_not_exsits};
+        _ ->
+            do_basic(post, Url, Data, AutoMkDir)
+    end.
 
+do_get(Url) ->
+    do_basic(get, Url, "", undefined).
 
-do_get(RequestUrl, Url) ->
-    do_basic(get, RequestUrl, Url, '').
+do_head(Url) ->
+    do_basic(head, Url, "", undefined).
 
-do_head(RequestUrl, Url) ->
-    do_basic(head, RequestUrl, Url, '').
+do_delete(Url) ->
+    do_basic(delete, Url,"", undefined).
 
-do_delete(RequestUrl, Url) ->
-    do_basic(delete, RequestUrl, Url, '').
+do_post(Url, AutoMkDir) ->
+    do_basic(post, Url, "", AutoMkDir).
 
-do_post(RequestUrl, Url) ->
-    do_basic(post, RequestUrl, Url, '').
-
-do_basic(Method, RequestUrl, Url, Data) ->
+do_basic(Method, Url, Data, AutoMkDir) ->
+    RequestUrl = lists:append(["http://", ?ED_AUTO, Url]),
     ContentLength = string:len(Data),
     GMTDate = get_gmt_time(),
     MethodStr = string:to_upper(atom_to_list(Method)),
-    Header = [{"Date", GMTDate},
+    Header = [{?HEADER_DATE, GMTDate},
               {?HEADER_SDK_VERSION, "3.0"},
               {?HEADER_AUTH, do_sign(MethodStr, Url, GMTDate,integer_to_list(ContentLength))},
-              {"timeout", "30000"},
-              {?HEADER_MKDIR, "true"}],
+              {?HEADER_TIMEOUT, "30000"}],
+    case AutoMkDir =/= undefined of 
+        true ->
+            TrailHeader = [{?HEADER_MKDIR, atom_to_list(AutoMkDir)}] ++ Header;
+        false ->
+            TrailHeader = Header
+    end,
     inets:start(),
-    {ok, Result} = case Method of 
+    {ok, Result} = case Method of
         post->
-            httpc:request(Method, {RequestUrl, Header, "", Data}, [], []);
+            MkdirHeader = [{?HEADER_UP_FOLDER, "true"}] ++  TrailHeader,
+            httpc:request(Method, {RequestUrl, MkdirHeader, "", Data}, [], []);
         put ->
-            httpc:request(Method, {RequestUrl, Header, "", Data}, [], []); 
+            httpc:request(Method, {RequestUrl, TrailHeader, "", Data}, [], []);
         _ ->
-            httpc:request(Method, {RequestUrl, Header}, [], [])
+            httpc:request(Method, {RequestUrl, TrailHeader}, [], [])
     end,
     inets:stop(),
     Result. 
