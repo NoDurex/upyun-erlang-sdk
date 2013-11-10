@@ -27,16 +27,19 @@
 % request optins
 -define(DEFAULT_TIMEOUT, "30000").
 -define(HEADER_SDK_VERSION, "x-up-version").
+-define(VSN, "3.0").
 -define(HEADER_MKDIR, "x-up-mkdir").
 -define(HEADER_AUTH, "Authorization").
 -define(HEADER_CONTENTLENGTH, "Content-Length").
 -define(HEADER_TIMEOUT, "timeout").
 -define(HEADER_DATE, "Date").
+-define(TRUE, "true").
 
 -define(HEADER_UP_FILE_TYPE, "x-up-file-type").
 -define(HEADER_UP_FILE_SIZE, "x-up-file-size").
 -define(HEADER_UP_FILE_DATE, "x-up-file-date").
 -define(HEADER_UP_FOLDER, "x-up-folder").
+
 
 %% 上传文件
 put(Url, LocalFilePath) ->
@@ -44,7 +47,7 @@ put(Url, LocalFilePath) ->
         {ok, Binary} ->
             Data = binary_to_list(Binary);
         _ ->
-            Data = ''
+            Data = ""
     end,
     do_put(Url, Data, true).
 
@@ -97,9 +100,9 @@ do_basic(Method, Url, Data, AutoMkDir) ->
     GMTDate = get_gmt_time(),
     MethodStr = string:to_upper(atom_to_list(Method)),
     Header = [{?HEADER_DATE, GMTDate},
-              {?HEADER_SDK_VERSION, "3.0"},
+              {?HEADER_SDK_VERSION, ?VSN},
               {?HEADER_AUTH, do_sign(MethodStr, Url, GMTDate,integer_to_list(ContentLength))},
-              {?HEADER_TIMEOUT, "30000"}],
+              {?HEADER_TIMEOUT, ?DEFAULT_TIMEOUT}],
     case AutoMkDir =/= undefined of 
         true ->
             TrailHeader = [{?HEADER_MKDIR, atom_to_list(AutoMkDir)}] ++ Header;
@@ -162,3 +165,9 @@ list_to_month("Sep") -> 9;
 list_to_month("Oct") -> 10;
 list_to_month("Nov") -> 11;
 list_to_month("Dec") -> 12.
+
+
+validate(Url) ->
+
+
+
