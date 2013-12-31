@@ -2,6 +2,7 @@
 
 -export([get/1, usage/0, info/1, delete/1, mkdir/1, put/2]).
 -import(md5, [md5/1]).
+-import(encode_uri_rfc3986, [encode/1]).
 %-import(digest_auth, [request/6]).
 %% http method
 -define(POST, post).
@@ -10,13 +11,13 @@
 -define(DELETE, delete).
 -define(HEAD, head).
 
--define(Bucket, "your bucket name").
--define(UserName, "your account name").
--define(Password, "your password"). 
+-define(Bucket, "zhangtao-file").
+-define(UserName, "nodurex456").
+-define(Password, "aa12345678"). 
 
 %% request url
 % 根据网络条件自动选择接入点
--define(ED_AUTO, "v0.api.upyun.com").
+-define(ED_AUTO, "v0.api2.upyun.com").
 % 电信接入点
 -define(ED_TELECOM, "v1.api.upyun.com").
 % 网通接入点
@@ -95,7 +96,8 @@ do_post(Url, AutoMkDir) ->
     do_basic(post, Url, "", AutoMkDir).
 
 do_basic(Method, Url, Data, AutoMkDir) ->
-    RequestUrl = lists:append(["http://", ?ED_AUTO, Url]),
+    RequestUrl = lists:append(["http://", ?ED_AUTO, build_url(Url)]),
+    io:format(RequestUrl),
     ContentLength = string:len(Data),
     GMTDate = get_gmt_time(),
     MethodStr = string:to_upper(atom_to_list(Method)),
@@ -120,7 +122,7 @@ do_basic(Method, Url, Data, AutoMkDir) ->
             httpc:request(Method, {RequestUrl, TrailHeader}, [], [])
     end,
     inets:stop(),
-    Result. 
+    Result.
 
 do_sign(Method, Url, GmtDate, ContentLength) ->
     Sign = string:join([Method, Url, GmtDate, ContentLength, md5:md5(?Password)], "&"),
@@ -167,7 +169,12 @@ list_to_month("Nov") -> 11;
 list_to_month("Dec") -> 12.
 
 
-validate(Url) ->
+%% encode request url split by "/"
+build_url(Url) ->
+    NewUrl = lists:append("/" ++ [encode_uri_rfc3986:encode(R) || R <- string:tokens(Url, "/")], "/"),
+    io:format(NewUrl),
+    Length = string:len(NewUrl),
+    string:sub_string(NewUrl, 1, Length - 1).
 
 
 
