@@ -41,6 +41,9 @@
 -define(HEADER_UP_FILE_DATE, "x-up-file-date").
 -define(HEADER_UP_FOLDER, "x-up-folder").
 
+-define(CONST_HTTP_SUFFIX, "http://").
+-define(CONST_SEPARATOR, "/").
+
 
 %% 上传文件
 put(Url, LocalFilePath) ->
@@ -66,7 +69,7 @@ info(Url) ->
 
 %% 查看空间使用量
 usage() ->
-    Url = lists:append(["/", ?Bucket, "/?usage"]),
+    Url = lists:append([?CONST_SEPARATOR, ?Bucket, "/?usage"]),
     do_get(Url).
 
 %% 读取文件
@@ -96,8 +99,7 @@ do_post(Url, AutoMkDir) ->
     do_basic(post, Url, "", AutoMkDir).
 
 do_basic(Method, Url, Data, AutoMkDir) ->
-    RequestUrl = lists:append(["http://", ?ED_AUTO, build_url(Url)]),
-    io:format(RequestUrl),
+    RequestUrl = lists:append([?CONST_HTTP_SUFFIX, ?ED_AUTO, build_url(Url)]),
     ContentLength = string:len(Data),
     GMTDate = get_gmt_time(),
     MethodStr = string:to_upper(atom_to_list(Method)),
@@ -105,7 +107,7 @@ do_basic(Method, Url, Data, AutoMkDir) ->
               {?HEADER_SDK_VERSION, ?VSN},
               {?HEADER_AUTH, do_sign(MethodStr, Url, GMTDate,integer_to_list(ContentLength))},
               {?HEADER_TIMEOUT, ?DEFAULT_TIMEOUT}],
-    case AutoMkDir =/= undefined of 
+    case AutoMkDir =/= undefined of
         true ->
             TrailHeader = [{?HEADER_MKDIR, atom_to_list(AutoMkDir)}] ++ Header;
         false ->
@@ -171,8 +173,7 @@ list_to_month("Dec") -> 12.
 
 %% encode request url split by "/"
 build_url(Url) ->
-    NewUrl = lists:append("/" ++ [encode_uri_rfc3986:encode(R) || R <- string:tokens(Url, "/")], "/"),
-    io:format(NewUrl),
+    NewUrl = lists:append(?CONST_SEPARATOR ++ [encode_uri_rfc3986:encode(R) || R <- string:tokens(Url, ?CONST_SEPARATOR)], ?CONST_SEPARATOR),
     Length = string:len(NewUrl),
     string:sub_string(NewUrl, 1, Length - 1).
 
