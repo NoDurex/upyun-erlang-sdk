@@ -1,12 +1,7 @@
 -module(encode_uri_rfc3986).
--author('Renato Albano <renatoalbano@gmail.com>').
  
 -export([encode/1]).
- 
-%% Taken from <http://erlangexamples.com/>,
-%% from <http://github.com/CapnKernul/httparadise>
-%% and <http://www.erlang.org/doc/man/edoc_lib.html>
- 
+
 encode([C | Cs]) when C >= $a, C =< $z ->
   [C | encode(Cs)];
 encode([C | Cs]) when C >= $A, C =< $Z ->
